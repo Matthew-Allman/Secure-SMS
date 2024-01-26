@@ -35,7 +35,6 @@ Create a `.env` file at the topmost folder location and populate it with the fol
 
 ## Install Dependencies and Start
 
-    ```bash
     npm i
     npm start
     
