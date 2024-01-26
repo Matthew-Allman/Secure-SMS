@@ -21,7 +21,6 @@ Before running SecureSMS, it is essential to have MySQL installed. For detailed 
 
 Create a `.env` file at the topmost folder location and populate it with the following variables:
 
-    ```
     TWILIO_ACCOUNT_SID=<Your Twilio Account SID>
     TWILIO_AUTH_TOKEN=<Your Twilio Auth Token>
     TWILIO_ACCOUNT_PHONE_NUMBER=<Your Twilio Account Phone Number>
@@ -33,7 +32,6 @@ Create a `.env` file at the topmost folder location and populate it with the fol
     MYSQL_HOSTNAME=<Your MySQL Hostname>
     SALT_ROUNDS=<Number of Salt Rounds for Encryption>
     ENCRYPTION_PASSPHRASE=<Your Encryption Passphrase>
-    ```
 
 ## Install Dependencies and Start
 
