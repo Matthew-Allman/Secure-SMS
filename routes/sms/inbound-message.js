@@ -40,10 +40,14 @@ const { decryptMessage } = require("../../functions/crypto/decrypt");
 
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
+// Route that matches endpoint /inbound-messages
+//
 router.route("/").post(async (req, res) => {
   const { From, Body } = req.body;
 
   try {
+    // Test if the user has used a credential key as first priority
+    //
     if (Body.startsWith("PRIVATE KEY:") || Body.startsWith("PUBLIC KEY:")) {
       const response = await keySignIn(From, Body);
 
@@ -53,8 +57,12 @@ router.route("/").post(async (req, res) => {
       res.writeHead(200, { "Content-Type": "text/xml" });
       res.end(twiml.toString());
     } else {
+      // Get whether the user has an account and/or is logged in already
+      //
       const { authStatus, hasAccount } = await getAuthStatus(From);
 
+      // Parse the Body/message from the user to get the users desired function/command
+      //
       if ((hasAccount && !authStatus) || Body.startsWith("SIGN IN:")) {
         if (Body.includes("&&")) {
           // Prompt user to login

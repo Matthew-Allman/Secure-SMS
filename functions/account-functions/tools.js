@@ -1,3 +1,5 @@
+// Function to generate a user unique 20 char key
+//
 const UUIDKeygen = () => {
   const idStrLen = 20;
   let idStr = "";
@@ -9,6 +11,8 @@ const UUIDKeygen = () => {
   return idStr;
 };
 
+// Function that will generate unique keys
+//
 const keygen = () => {
   const idStrLen = 19;
   let idStr = "";

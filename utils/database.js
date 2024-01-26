@@ -68,13 +68,13 @@ sqlStr += `CREATE TABLE IF NOT EXISTS Contacts (
 // Create the tables using the sql connection
 //
 con.connect(async function (err) {
-  if (err) console.log(err);
+  if (err) {
+    throw err;
+  }
   var sql = sqlStr;
   con.query(sql, function (err, result) {
     if (err) {
-      console.log(err);
-    } else if (result) {
-      console.log("No errors occured with SQL");
+      throw err;
     }
   });
 });

@@ -17,7 +17,9 @@ const signOut = async (phoneNumber) => {
         returnMessage = "Something went wrong, please try again.";
       }
     })
-    .catch((err) => console.log(err));
+    .catch(() => {
+      returnMessage = "Error while signing you out, please try again.";
+    });
 
   return returnMessage;
 };

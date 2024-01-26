@@ -2,6 +2,9 @@ const { db } = require("../../utils/database");
 
 const encryptionPassphrase = process.env.ENCRYPTION_PASSPHRASE;
 
+// Function to parse a -d or decrypt command to get the parameters
+// message, encryption type, and encryption key
+//
 const getDecryptParams = async (phoneNumber, message) => {
   let returnMessage = "";
 
@@ -11,8 +14,12 @@ const getDecryptParams = async (phoneNumber, message) => {
     let encryptionType = "";
     let keyString = "";
 
+    // Replace the -d and split the string by &&
+    //
     const parameters = message.replace("-d", "").split("&&");
 
+    // Parse the users message and get the specifed fields
+    //
     for (let i = 0; i < parameters.length; i++) {
       const parameter = parameters[i];
 
@@ -31,10 +38,17 @@ const getDecryptParams = async (phoneNumber, message) => {
       }
     }
 
+    // Test if the encrypted message was received
+    //
     if (encryptedMessage) {
+      // Test if the user simply specifed and encryption type and key string
+      //
       if (encryptionType.length > 0 && keyString.length > 0) {
         return { encryptedMessage, encryptionType, keyString };
       } else if (configName.length > 0) {
+        // Select and decrypt the encryption passphrase AS passphrase and the method
+        // using a join on the Configurations and VerifiedNumbers tables
+        //
         await db
           .promise()
           .query(
@@ -49,7 +63,10 @@ const getDecryptParams = async (phoneNumber, message) => {
                 "There is no config setting with this name for this account. Please specify one.";
             }
           })
-          .catch((err) => console.log(err));
+          .catch(() => {
+            returnMessage =
+              "Error while getting the encryption config information, please try again.";
+          });
 
         if (encryptionType && keyString) {
           return { encryptedMessage, encryptionType, keyString };
@@ -69,7 +86,10 @@ const getDecryptParams = async (phoneNumber, message) => {
                 "There is no default config setting for this account. Please specify one.";
             }
           })
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            returnMessage =
+              "Error while getting the encryption config information, please try again.";
+          });
 
         if (encryptionType && keyString) {
           return { encryptedMessage, encryptionType, keyString };

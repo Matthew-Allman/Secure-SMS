@@ -1,4 +1,12 @@
 {
+  "name": "secure-sms",
+  "main": "server.js",
+  "version": "1.0.0",
+  "description": "SecureSMS ensures private messaging with personalized encryption. Effortlessly create configs, send secure messages to contacts, and use public/private keys for seamless sign-ins. Trust in an intuitive user guide for a smooth and secure communication experience.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
   "dependencies": {
     "badwords-list": "^1.0.0",
     "bcrypt": "^5.1.1",

@@ -26,8 +26,8 @@ const hashPassword = async (password) => {
     .then((response) => {
       hashedPassword = response;
     })
-    .catch((err) => {
-      console.log(err);
+    .catch(() => {
+      hashedPassword = false;
     });
 
   return hashedPassword;
@@ -44,7 +44,10 @@ const verifyUsername = async (username) => {
 
   if (bool) {
     // Test if a user with the user name already exists
-    // select only username for security reasons
+    // select only username for security reasons.
+    // Since it is a unique index, the check is not necessarily
+    // required, but we add since we want to give an appropriate error
+    // message to the user.
     //
     await db
       .promise()
@@ -58,7 +61,9 @@ const verifyUsername = async (username) => {
           validUsername = true;
         }
       })
-      .catch((err) => console.log(err));
+      .catch(() => {
+        message = "Something went wrong, please try again";
+      });
   } else {
     message = "Username contains profanity, please choose another.";
   }
@@ -69,7 +74,7 @@ const verifyUsername = async (username) => {
 // Function to register a user and add them to rows in the database
 //
 const signUp = async (phoneNumber, message) => {
-  let successfullSignUp = false;
+  let successfullSignIn = false;
   let privateKey = "";
   let publicKey = "";
 
@@ -87,6 +92,8 @@ const signUp = async (phoneNumber, message) => {
 
       username = username.toLowerCase();
 
+      // Validate the username
+      //
       const { validUsername, message } = await verifyUsername(username);
 
       if (validUsername && password) {
@@ -95,11 +102,15 @@ const signUp = async (phoneNumber, message) => {
 
         const hash = await hashPassword(password);
 
+        // Generate users unique credential keys
+        //
         let userID = UUIDKeygen();
         privateKey = keygen();
         publicKey = keygen();
 
-        while (!exitFlag) {
+        while (!exitFlag && typeof hash == "string") {
+          // Encrypt sensitive data before storing into the DB
+          //
           await db
             .promise()
             .query(
@@ -109,7 +120,7 @@ const signUp = async (phoneNumber, message) => {
             )
             .then(async (result) => {
               if (result[0].affectedRows > 0) {
-                successfullSignUp = true;
+                successfullSignIn = true;
                 exitFlag = true;
 
                 await db
@@ -118,9 +129,7 @@ const signUp = async (phoneNumber, message) => {
                     `INSERT INTO VerifiedNumbers (userID, phoneNumber) VALUES (?, ?)`,
                     [userID, phoneNumber]
                   )
-                  .catch((err) => {
-                    console.log(err);
-                  });
+                  .catch(() => {});
               }
             })
             .catch((err) => {
@@ -140,18 +149,17 @@ const signUp = async (phoneNumber, message) => {
                   count++;
                 }
               } else {
-                console.log(err);
                 exitFlag = true;
               }
             });
         }
       } else if (message) {
-        return { successfullSignUp, message };
+        return { successfullSignIn, message };
       }
     }
   } catch (e) {}
 
-  return { successfullSignUp, privateKey, publicKey };
+  return { successfullSignIn, privateKey, publicKey };
 };
 
 // Function to sign user in using their username/password conbination
@@ -177,8 +185,6 @@ const pswSignIn = async (phoneNumber, message, hasAccount) => {
 
       username = username.toLowerCase();
 
-      console.log(password);
-
       await db
         .promise()
         .query(`SELECT password FROM Users WHERE username = '${username}'`)
@@ -203,10 +209,15 @@ const pswSignIn = async (phoneNumber, message, hasAccount) => {
                   .query(
                     `INSERT INTO VerifiedNumbers SET userID = (${subQuery}), phoneNumber = '${phoneNumber}'`
                   )
-                  .catch((err) => console.log(err));
+                  .catch(() => {
+                    returnMessage =
+                      "Something went wrong while storing the phone number.";
+                  });
               }
 
-              // Ensure that the data in the database properly reflects the current state
+              // Ensure that the data in the database properly reflects the current state.
+              // This updata statement uses a join on the Users and VerifiedNumbers tables
+              // through their foreign keys and unique indexes
               //
               await db
                 .promise()
@@ -221,8 +232,8 @@ const pswSignIn = async (phoneNumber, message, hasAccount) => {
                       "Something went wrong, please try again later.";
                   }
                 })
-                .catch((err) => {
-                  console.log(err);
+                .catch(() => {
+                  returnMessage = "Something went wrong, please try again.";
                 });
             } else {
               returnMessage = "Incorrect username/password combination";
@@ -231,8 +242,8 @@ const pswSignIn = async (phoneNumber, message, hasAccount) => {
             returnMessage = "Incorrect username/password combination";
           }
         })
-        .catch((err) => {
-          console.log(err);
+        .catch(() => {
+          returnMessage = "Something went wrong, please try again.";
         });
     }
   } catch (e) {
@@ -264,7 +275,8 @@ const keySignIn = async (phoneNumber, message) => {
         // Test if the user is using a phone number that is in the database
         //
         if (response[0].length > 0) {
-          // Change the user id to the id that is associated with the key if necessary
+          // Change the user id to the id that is associated with the key if necessary.
+          // Use the flag to denote whether it is a private key or public key.
           //
           const sqlStr = `UPDATE Users, VerifiedNumbers SET Users.loggedIn = 1 ${
             flag ? ", VerifiedNumbers.permAuth = 1" : ""
@@ -287,8 +299,8 @@ const keySignIn = async (phoneNumber, message) => {
                   "Could not find a user with the associated key.";
               }
             })
-            .catch((err) => {
-              console.log(err);
+            .catch(() => {
+              returnMessage = "Something went wrong, please try again.";
             });
         } else {
           const subQuery = `SELECT id FROM Users WHERE 
@@ -309,8 +321,8 @@ const keySignIn = async (phoneNumber, message) => {
                     .query(
                       `UPDATE Users, VerifiedNumbers SET VerifiedNumbers.permAuth = 1, Users.loggedIn = 1 WHERE phoneNumber = '${phoneNumber}' AND VerifiedNumbers.userID = Users.id`
                     )
-                    .catch((err) => {
-                      console.log(err);
+                    .catch(() => {
+                      returnMessage = "Something went wrong, please try again.";
                     });
                 } else {
                   await db
@@ -332,7 +344,7 @@ const keySignIn = async (phoneNumber, message) => {
                   "Could not find a user with the associated key.";
               }
             })
-            .catch((err) => {
+            .catch(() => {
               // This will throw an error if the key is not in the database
               //
               returnMessage = "Could not find a user with the associated key.";
@@ -347,7 +359,6 @@ const keySignIn = async (phoneNumber, message) => {
       "Please follow the format for siginin in with priavte/public keys:\n\n PRIVATE KEY: [your private key] or PUBLIC KEY: [your public key]";
   }
 
-  console.log(returnMessage);
   return returnMessage;
 };
 

@@ -2,19 +2,20 @@ require("dotenv").config();
 const { db } = require("../../utils/database");
 const { encryptMessage } = require("../crypto/encrypt");
 
+// Twilio credential keys
+//
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 
 const client = require("twilio")(accountSid, authToken);
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
-// Twilio credential keys
-//
-
 // Twilio provided phone number
 //
 const accountPhoneNumber = process.env.TWILIO_ACCOUNT_PHONE_NUMBER;
 
+// Passphrase that is used to encrypt data stored in the database
+//
 const encryptionPassphrase = process.env.ENCRYPTION_PASSPHRASE;
 
 // Function to encrypt data and send to specified numbers or persons
@@ -23,6 +24,8 @@ const outBoundMessage = async (phoneNumber, message) => {
   let returnMessage = "";
 
   try {
+    // Parse the -e command message
+    //
     const parameters = message.replace("-e", "").split("&&");
 
     let configName = "";
@@ -50,6 +53,9 @@ const outBoundMessage = async (phoneNumber, message) => {
     let encryptionMethod = "";
     let secretPassphrase = "";
 
+    // Get the necessary data from the database using the parameters
+    // of the message sent by user
+    //
     if (defaultConfig) {
       await db
         .promise()
@@ -65,7 +71,10 @@ const outBoundMessage = async (phoneNumber, message) => {
               "There is no default config setting for this account. Please specify one.";
           }
         })
-        .catch((err) => console.log(err));
+        .catch(() => {
+          returnMessage =
+            "Error while getting the encryption config information, please try again.";
+        });
     } else {
       await db
         .promise()
@@ -81,9 +90,14 @@ const outBoundMessage = async (phoneNumber, message) => {
               "There is no config setting with this name for this account. Please specify one.";
           }
         })
-        .catch((err) => console.log(err));
+        .catch(() => {
+          returnMessage =
+            "Error while getting the encryption config information, please try again.";
+        });
     }
 
+    // Test if the parameters have all been gotten
+    //
     if (encryptionMethod && encryptionPassphrase) {
       const encryptedText = encryptMessage(
         outMessage,
@@ -186,7 +200,7 @@ const outBoundMessage = async (phoneNumber, message) => {
           returnMessage = encryptedText;
         }
       } else {
-        console.log("Something went wrong, please try again.");
+        returnMessage = "Something went wrong, please try again.";
       }
     }
   } catch (e) {

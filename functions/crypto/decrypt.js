@@ -1,11 +1,16 @@
 const CryptoJS = require("crypto-js");
 
+// Function to decrypt a message using the provided key and method
+//
 const decryptMessage = (message, method, key) => {
   let decryptionMessage = "";
 
   try {
     const decryptionMethod = method.toLowerCase();
 
+    // Use a switch on the decryption method and test if it matches any of the
+    // following
+    //
     switch (decryptionMethod) {
       case "aes": {
         decryptionMessage = CryptoJS.AES.decrypt(message, key);
@@ -33,6 +38,8 @@ const decryptMessage = (message, method, key) => {
       }
     }
 
+    // Convert to utf8 encoded string
+    //
     decryptionMessage = decryptionMessage.toString(CryptoJS.enc.Utf8);
   } catch (e) {
     decryptionMessage =

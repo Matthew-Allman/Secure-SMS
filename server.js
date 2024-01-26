@@ -23,5 +23,5 @@ app.use("/inbound-messages", inboundMessage);
 // Start the server on the specified port
 //
 app.listen(process.env.PORT, () => {
-  console.log("Auto bots listening on Port: " + process.env.PORT);
+  console.log("Using port: " + process.env.PORT);
 });

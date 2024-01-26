@@ -1,10 +1,15 @@
 const { db } = require("../../utils/database");
 
+// Function to get whether or not the user is signed in to the application
+//
 const getAuthStatus = async (phoneNumber) => {
   let authStatus = false;
   let hasAccount = false;
 
-  const sqlStr = `SELECT loggedIn, permAuth FROM Users, VerifiedNumbers 
+  // Use a join on the Users and VerifiedNumbers tables to select the loggedIn status
+  // or permAuth of the number for the user
+  //
+  const sqlStr = `SELECT Users.loggedIn, VerifiedNumbers.permAuth FROM Users, VerifiedNumbers 
                   WHERE VerifiedNumbers.phoneNumber = '${phoneNumber}' 
                   AND VerifiedNumbers.userID = Users.id`;
 
@@ -21,8 +26,8 @@ const getAuthStatus = async (phoneNumber) => {
         }
       }
     })
-    .catch((err) => {
-      console.log(err);
+    .catch(() => {
+      returnMessage = "Something went wrong, please try again.";
     });
 
   return { authStatus, hasAccount };

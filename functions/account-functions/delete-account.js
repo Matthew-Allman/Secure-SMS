@@ -17,7 +17,9 @@ const deleteAccount = async (phoneNumber) => {
         returnMessage = "Something went wrong, please try again.";
       }
     })
-    .catch((err) => console.log(err));
+    .catch(() => {
+      returnMessage = "Error while deleting you account, please try again.";
+    });
 
   return returnMessage;
 };

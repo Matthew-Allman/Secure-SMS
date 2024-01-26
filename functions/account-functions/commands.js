@@ -27,6 +27,8 @@ const listNumbers = async (phoneNumber) => {
         // Add the numbers to the return string
         //
         numberArr.map((item, index) => {
+          // Test if the index is at the very end of the array
+          //
           if (index == numberArr.length - 1) {
             item.permAuth = item.permAuth == 1 ? true : false;
 
@@ -41,7 +43,9 @@ const listNumbers = async (phoneNumber) => {
         numberStr = "Something went wrong, please try again.";
       }
     })
-    .catch((err) => console.log(err));
+    .catch(() => {
+      numberStr = "Something went wrong, please try again.";
+    });
 
   return numberStr;
 };
@@ -77,7 +81,9 @@ const listConfigs = async (phoneNumber) => {
         configStr = "Something went wrong, please try again.";
       }
     })
-    .catch((err) => console.log(err));
+    .catch(() => {
+      configStr = "Something went wrong, please try again.";
+    });
 
   return configStr;
 };
@@ -96,18 +102,24 @@ const createContact = async (phoneNumber, body) => {
     const contactNumber = paramArr[1].replaceAll(" ", "");
 
     if (contactName && contactNumber) {
+      // Use a join on the Contacts and VerifiedNumbers table to select a contactName
+      // associated with the users account through their phone number.
+      //
       await db
         .promise()
         .query(
-          `SELECT contactName FROM Contacts, VerifiedNumbers WHERE VerifiedNumbers.phoneNumber = '${phoneNumber}' AND VerifiedNumbers.userID = Contacts.userID
-                `
+          `SELECT contactName FROM Contacts, VerifiedNumbers WHERE VerifiedNumbers.phoneNumber = '${phoneNumber}' AND VerifiedNumbers.userID = Contacts.userID`
         )
         .then(async (response) => {
           if (response[0].length > 0) {
+            // Output that the name already exists
+            //
             message = "Contact name already exists.";
           } else {
             const subQuery = `SELECT userID FROM VerifiedNumbers WHERE phoneNumber = '${phoneNumber}'`;
 
+            // Use a sub query to select the userID using the phone number
+            //
             await db
               .promise()
               .query(
@@ -119,11 +131,14 @@ const createContact = async (phoneNumber, body) => {
                 } else {
                   message = "An error has occured.";
                 }
+              })
+              .catch(() => {
+                message = "Something went wrong, please try again.";
               });
           }
         })
         .catch((err) => {
-          console.log(err);
+          message = "Something went wrong, please try again.";
         });
     }
   } catch (e) {
@@ -131,13 +146,13 @@ const createContact = async (phoneNumber, body) => {
   }
   return message;
 };
+
 // Function to list all the contacts associated with a user
 // Not fully complete
 //
 const listContacts = async (phoneNumber) => {
   // String that will contain each contact in a comma seperated list
   //
-
   let contactStr = "";
 
   const subQuery = `SELECT userID FROM VerifiedNumbers WHERE phoneNumber = '${phoneNumber}'`;
@@ -145,7 +160,7 @@ const listContacts = async (phoneNumber) => {
   await db
     .promise()
     .query(
-      `SELECT AES_DECRYPT(contactName, '${encryptionPassphrase}'), AES_DECRYPT(contactNumber, '${encryptionPassphrase}')  FROM Contacts WHERE userID = (${subQuery})`
+      `SELECT contactName, contactNumber FROM Contacts WHERE userID = (${subQuery})`
     )
     .then((response) => {
       if (response[0].length > 0) {
@@ -164,7 +179,9 @@ const listContacts = async (phoneNumber) => {
         contactStr = "Something went wrong, please try again.";
       }
     })
-    .catch((err) => console.log(err));
+    .catch(() => {
+      contactStr = "Something went wrong, please try again.";
+    });
 
   return contactStr;
 };
@@ -206,11 +223,10 @@ const createConfig = async (phoneNumber, message) => {
           .then((response) => {
             if (response[0].length > 0) {
               dupName = true;
-            } else {
             }
           })
-          .catch((err) => {
-            console.log(err);
+          .catch(() => {
+            returnMessage = "Something went wrong.";
           });
 
         if (dupName) {
@@ -237,7 +253,9 @@ const createConfig = async (phoneNumber, message) => {
                 returnMessage = "Something went wrong, please try again.";
               }
             })
-            .catch((err) => console.log(err));
+            .catch(() => {
+              returnMessage = "Something went wrong, please try again.";
+            });
         }
       } else {
         returnMessage =
@@ -269,6 +287,8 @@ const removeCMD = async (phoneNumber, message) => {
       let number = "";
       let contactName = "";
 
+      // Find the correct flags and parse the users message
+      //
       for (let i = 0; i < splitMessage.length; i++) {
         const tempStr = splitMessage[i];
 
@@ -307,6 +327,8 @@ const removeCMD = async (phoneNumber, message) => {
 
               let sqlStr = "";
 
+              // Delete the specified data from the database
+              //
               if (encryptionName) {
                 sqlStr = `DELETE FROM Configurations WHERE configName = '${encryptionName}' AND userID = '${userID}'`;
 
@@ -319,7 +341,9 @@ const removeCMD = async (phoneNumber, message) => {
                       returnMessage = `Removed ${encryptionName}. `;
                     }
                   })
-                  .catch((err) => console.log(err));
+                  .catch(() => {
+                    returnMessage += `Error while removing: ${encryptionName}. `;
+                  });
               }
 
               if (number) {
@@ -334,7 +358,9 @@ const removeCMD = async (phoneNumber, message) => {
                       returnMessage += `Removed ${number}. `;
                     }
                   })
-                  .catch((err) => console.log(err));
+                  .catch(() => {
+                    returnMessage += `Error while removing: ${number}. `;
+                  });
               }
 
               if (contactName) {
@@ -349,7 +375,9 @@ const removeCMD = async (phoneNumber, message) => {
                       returnMessage += `Removed ${contactName}. `;
                     }
                   })
-                  .catch((err) => console.log(err));
+                  .catch(() => {
+                    returnMessage += `Error while removing: ${contactName}. `;
+                  });
               }
 
               if (flag) {
@@ -360,8 +388,8 @@ const removeCMD = async (phoneNumber, message) => {
               returnMessage = "Something went wrong, please try again.";
             }
           })
-          .catch((err) => {
-            console.log(err);
+          .catch(() => {
+            returnMessage = "Something went wrong, please try again.";
           });
       }
     }
@@ -382,12 +410,8 @@ const configDefault = async (phoneNumber, message) => {
     const parameter = message.split(":")[1];
     const configName = parameter.replaceAll(" ", "");
 
-    console.log(configName);
-
     if (configName) {
       const subQuery = `SELECT userID FROM VerifiedNumbers WHERE phoneNumber = '${phoneNumber}'`;
-
-      console.log(subQuery);
 
       await db
         .promise()
@@ -401,16 +425,18 @@ const configDefault = async (phoneNumber, message) => {
               .query(
                 `UPDATE Configurations SET defaultSetting = 0 WHERE userID = (${subQuery}) AND configName != '${configName.toLowerCase()}'`
               )
-              .catch((err) => {
-                console.log(err);
+              .catch(() => {
+                returnMessage = "Error resetting the other default settings.";
               });
 
-            returnMessage = "Default Changed.";
+            returnMessage += "Default Changed.";
           } else {
             returnMessage = "No config associated with this name.";
           }
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          returnMessage = "Error while setting the default setting.";
+        });
     } else {
       returnMessage =
         "Please make sure you're following the format provided in the user guide.";
