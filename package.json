@@ -2,6 +2,7 @@
   "dependencies": {
     "badwords-list": "^1.0.0",
     "bcrypt": "^5.1.1",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.0",
     "express": "^4.18.2",
     "mysql2": "^3.8.0",

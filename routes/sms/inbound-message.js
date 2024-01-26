@@ -8,8 +8,23 @@ const {
   pswSignIn,
   keySignIn,
 } = require("../../functions/account-functions/authenticate");
-const { signUpPrompt, registered, signInPrompt } = require("../../constants");
+const {
+  signUpPrompt,
+  registered,
+  signInPrompt,
+  userGuide,
+  configCreation,
+  contactCreation,
+} = require("../../constants");
 const { messageResponse } = require("../../functions/sms/send-message");
+const { signOut } = require("../../functions/account-functions/sign-out");
+const {
+  deleteAccount,
+} = require("../../functions/account-functions/delete-account");
+const {
+  listNumbers,
+  listConfigs,
+} = require("../../functions/account-functions/commands");
 
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
@@ -78,9 +93,85 @@ router.route("/").post(async (req, res) => {
         res.end(twiml.toString());
       }
     } else if (authStatus) {
-      // User is authenticated, allow for message queries
+      // Parse the message from the body using a switch statement
+      // to handle the multiple choices
       //
-      console.log("start messaging");
+      switch (Body) {
+        case "SIGN OUT": {
+          const message = await signOut(From);
+
+          const twiml = messageResponse(message);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "DELETE ACCOUNT": {
+          const message = await deleteAccount(From);
+
+          const twiml = messageResponse(message);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "--help": {
+          const twiml = messageResponse(userGuide);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "ls --configs": {
+          const message = await listConfigs(From);
+
+          const twiml = messageResponse(message);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "ls --numbers": {
+          const message = await listNumbers(From);
+
+          const twiml = messageResponse(message);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "CREATE CONFIG": {
+          const twiml = messageResponse(configCreation);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        case "CREATE CONTACT": {
+          const twiml = messageResponse(contactCreation);
+
+          res.writeHead(200, { "Content-Type": "text/xml" });
+          res.end(twiml.toString());
+
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
     }
   }
 });
