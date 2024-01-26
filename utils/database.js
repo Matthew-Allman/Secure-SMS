@@ -42,9 +42,10 @@ let sqlStr = `CREATE TABLE IF NOT EXISTS Users (
 sqlStr += `CREATE TABLE IF NOT EXISTS Configurations (
         configID INT NOT NULL AUTO_INCREMENT,
         userID VARCHAR(20) NOT NULL,
-        configName VARCHAR(20) DEFAULT 'config_1',
+        configName VARCHAR(20) NOT NULL,
         encryptionPassphrase TEXT NOT NULL,
-        encryptionMethod VARCHAR(30) DEFAULT 'aes',
+        encryptionMethod VARCHAR(30) NOT NULL,
+        defaultSetting BOOLEAN DEFAULT 0,
         PRIMARY KEY (configID),
         FOREIGN KEY(userID) REFERENCES Users(id) ON DELETE CASCADE);`;
 
@@ -55,6 +56,14 @@ sqlStr += `CREATE TABLE IF NOT EXISTS VerifiedNumbers (
   permAuth BOOLEAN DEFAULT 0,
   PRIMARY KEY (numberID),
   FOREIGN KEY(userID) REFERENCES Users(id) ON DELETE CASCADE);`;
+
+sqlStr += `CREATE TABLE IF NOT EXISTS Contacts (
+    contactID INT NOT NULL AUTO_INCREMENT,
+    userID VARCHAR(20) NOT NULL,
+    contactName VARCHAR(20) NOT NULL,
+    contactNumber VARCHAR(20) NOT NULL,
+    PRIMARY KEY (contactID),
+    FOREIGN KEY(userID) REFERENCES Users(id) ON DELETE CASCADE);`;
 
 // Create the tables using the sql connection
 //
