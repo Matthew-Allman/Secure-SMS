@@ -31,7 +31,7 @@ const getDecryptParams = async (phoneNumber, message) => {
         if (encryptedMessage[0] == " ") {
           encryptedMessage = encryptedMessage.substring(1);
         }
-      } else if (parameter.includes("TYPE:")) {
+      } else if (parameter.includes("METHOD:")) {
         encryptionType = parameter.split(":")[1].replaceAll(" ", "");
       } else if (parameter.includes("KEY:")) {
         keyString = parameter.split(":")[1].replaceAll(" ", "");
