@@ -26,7 +26,7 @@ const getDecryptParams = async (phoneNumber, message) => {
       if (parameter.includes("NAME:")) {
         configName = parameter.split(":")[1].replaceAll(" ", "");
       } else if (parameter.includes("MESSAGE:")) {
-        encryptedMessage = parameter.replace("MESSAGE: ", "");
+        encryptedMessage = parameter.replace("MESSAGE:", "");
 
         if (encryptedMessage[0] == " ") {
           encryptedMessage = encryptedMessage.substring(1);

@@ -258,7 +258,15 @@ router.route("/").post(async (req, res) => {
                     keyString
                   );
 
-                  const twiml = messageResponse(decryptedMessage);
+                  let twiml;
+
+                  if (decryptedMessage) {
+                    twiml = messageResponse(decryptedMessage);
+                  } else {
+                    twiml = messageResponse(
+                      "Something went wrong, please try again."
+                    );
+                  }
 
                   res.writeHead(200, { "Content-Type": "text/xml" });
                   res.end(twiml.toString());

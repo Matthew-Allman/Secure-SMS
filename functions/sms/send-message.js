@@ -38,7 +38,7 @@ const outBoundMessage = async (phoneNumber, message) => {
       if (parameter.includes("NAME:")) {
         configName = parameter.split(":")[1].replaceAll(" ", "");
       } else if (parameter.includes("MESSAGE:")) {
-        outMessage = parameter.replace("MESSAGE: ", "");
+        outMessage = parameter.replace("MESSAGE:", "");
 
         if (outMessage[0] == " ") {
           outMessage = outMessage.substring(1);
@@ -140,7 +140,7 @@ const outBoundMessage = async (phoneNumber, message) => {
               if (number.length > 0) {
                 await client.messages
                   .create({
-                    body: encryptedText,
+                    body: `Message from ${phoneNumber}:\n` + encryptedText,
                     from: accountPhoneNumber,
                     to: number,
                   })
@@ -158,8 +158,11 @@ const outBoundMessage = async (phoneNumber, message) => {
           } else {
             sendTo = sendTo.replaceAll(" ", "");
 
-            if (sendTo.includes("'")) {
-              const contactName = number.replaceAll("'", "");
+            if (sendTo.includes("‘") || sendTo.includes("'")) {
+              const contactName = sendTo
+                .replaceAll("‘", "")
+                .replaceAll("’", "")
+                .replaceAll("'", "");
 
               await db
                 .promise()
@@ -183,7 +186,7 @@ const outBoundMessage = async (phoneNumber, message) => {
             if (sendTo.length > 0) {
               await client.messages
                 .create({
-                  body: encryptedText,
+                  body: `Message from ${phoneNumber}:\n` + encryptedText,
                   from: accountPhoneNumber,
                   to: sendTo,
                 })

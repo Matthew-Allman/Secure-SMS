@@ -85,66 +85,11 @@ const listConfigs = async (phoneNumber) => {
       configStr = "Something went wrong, please try again.";
     });
 
-  return configStr;
-};
-
-// Function to create a contact
-//
-const createContact = async (phoneNumber, body) => {
-  let message = "";
-
-  try {
-    const parameters = body.split(":")[1];
-
-    const paramArr = parameters.split("&&");
-
-    const contactName = paramArr[0].replaceAll(" ", "");
-    const contactNumber = paramArr[1].replaceAll(" ", "");
-
-    if (contactName && contactNumber) {
-      // Use a join on the Contacts and VerifiedNumbers table to select a contactName
-      // associated with the users account through their phone number.
-      //
-      await db
-        .promise()
-        .query(
-          `SELECT contactName FROM Contacts, VerifiedNumbers WHERE VerifiedNumbers.phoneNumber = '${phoneNumber}' AND VerifiedNumbers.userID = Contacts.userID`
-        )
-        .then(async (response) => {
-          if (response[0].length > 0) {
-            // Output that the name already exists
-            //
-            message = "Contact name already exists.";
-          } else {
-            const subQuery = `SELECT userID FROM VerifiedNumbers WHERE phoneNumber = '${phoneNumber}'`;
-
-            // Use a sub query to select the userID using the phone number
-            //
-            await db
-              .promise()
-              .query(
-                `INSERT INTO Contacts SET userID = (${subQuery}), contactName = '${contactName}', contactNumber = '${contactNumber}'`
-              )
-              .then((res) => {
-                if (res[0].affectedRows > 0) {
-                  message = `Successfully added new contact name: ${contactName}, phoneNumber: ${contactNumber}`;
-                } else {
-                  message = "An error has occured.";
-                }
-              })
-              .catch(() => {
-                message = "Something went wrong, please try again.";
-              });
-          }
-        })
-        .catch((err) => {
-          message = "Something went wrong, please try again.";
-        });
-    }
-  } catch (e) {
-    message = "Please follow the format specified in the user guide.";
+  if (configStr.length == 0) {
+    configStr = "No configs for this account.";
   }
-  return message;
+
+  return configStr;
 };
 
 // Function to list all the contacts associated with a user
@@ -183,7 +128,70 @@ const listContacts = async (phoneNumber) => {
       contactStr = "Something went wrong, please try again.";
     });
 
+  if (contactStr.length == 0) {
+    contactStr = "No contacts for this account.";
+  }
+
   return contactStr;
+};
+
+// Function to create a contact
+//
+const createContact = async (phoneNumber, body) => {
+  let message = "";
+
+  try {
+    const parameters = body.split(":")[1];
+
+    const paramArr = parameters.split("&&");
+
+    const contactName = paramArr[0].replaceAll(" ", "");
+    const contactNumber = paramArr[1].replaceAll(" ", "");
+
+    if (contactName && contactNumber) {
+      // Use a join on the Contacts and VerifiedNumbers table to select a contactName
+      // associated with the users account through their phone number.
+      //
+      await db
+        .promise()
+        .query(
+          `SELECT contactName FROM Contacts, VerifiedNumbers WHERE VerifiedNumbers.phoneNumber = '${phoneNumber}' AND VerifiedNumbers.userID = Contacts.userID`
+        )
+        .then(async (response) => {
+          if (response[0].length > 0) {
+            // Output that the name already exists
+            //
+            message = "Contact name already exists.";
+          } else {
+            const subQuery = `SELECT userID FROM VerifiedNumbers WHERE phoneNumber = '${phoneNumber}'`;
+
+            // Use a sub query to select the userID using the phone number
+            //
+            await db
+              .promise()
+              .query(
+                `INSERT INTO Contacts SET userID = (${subQuery}), contactName = '${contactName.toLowerCase()}', contactNumber = '${contactNumber}'`
+              )
+              .then((res) => {
+                if (res[0].affectedRows > 0) {
+                  message = `Successfully added new contact name: ${contactName.toLowerCase()}, phoneNumber: ${contactNumber}`;
+                } else {
+                  message = "An error has occured.";
+                }
+              })
+              .catch(() => {
+                message = "Something went wrong, please try again.";
+              });
+          }
+        })
+        .catch((err) => {
+          message = "Something went wrong, please try again.";
+        });
+    }
+  } catch (e) {
+    message = "Please follow the format specified in the user guide.";
+  }
+  return message;
 };
 
 // Function to create an encryption config for the user

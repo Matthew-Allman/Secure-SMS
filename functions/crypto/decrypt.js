@@ -6,6 +6,7 @@ const decryptMessage = (message, method, key) => {
   let decryptionMessage = "";
 
   try {
+    message = message.replaceAll(" ", "").replaceAll("\n", "");
     const decryptionMethod = method.toLowerCase();
 
     // Use a switch on the decryption method and test if it matches any of the
