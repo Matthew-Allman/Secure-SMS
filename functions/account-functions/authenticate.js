@@ -74,7 +74,7 @@ const verifyUsername = async (username) => {
 // Function to register a user and add them to rows in the database
 //
 const signUp = async (phoneNumber, message) => {
-  let successfullSignIn = false;
+  let successfullSignUp = false;
   let privateKey = "";
   let publicKey = "";
 
@@ -120,7 +120,7 @@ const signUp = async (phoneNumber, message) => {
             )
             .then(async (result) => {
               if (result[0].affectedRows > 0) {
-                successfullSignIn = true;
+                successfullSignUp = true;
                 exitFlag = true;
 
                 await db
@@ -154,12 +154,12 @@ const signUp = async (phoneNumber, message) => {
             });
         }
       } else if (message) {
-        return { successfullSignIn, message };
+        return { successfullSignUp, message };
       }
     }
   } catch (e) {}
 
-  return { successfullSignIn, privateKey, publicKey };
+  return { successfullSignUp, privateKey, publicKey };
 };
 
 // Function to sign user in using their username/password conbination

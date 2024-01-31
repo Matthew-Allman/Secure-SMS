@@ -48,7 +48,7 @@ router.route("/").post(async (req, res) => {
   try {
     // Test if the user has used a credential key as first priority
     //
-    if (Body.startsWith("PRIVATE KEY:") || Body.startsWith("PUBLIC KEY:")) {
+    if (Body.includes("PRIVATE KEY:") || Body.includes("PUBLIC KEY:")) {
       const response = await keySignIn(From, Body);
 
       const twiml = new MessagingResponse();
@@ -63,7 +63,7 @@ router.route("/").post(async (req, res) => {
 
       // Parse the Body/message from the user to get the users desired function/command
       //
-      if ((hasAccount && !authStatus) || Body.startsWith("SIGN IN:")) {
+      if ((hasAccount && !authStatus) || Body.includes("SIGN IN:")) {
         if (Body.includes("&&")) {
           // Prompt user to login
           //
@@ -80,7 +80,7 @@ router.route("/").post(async (req, res) => {
           res.end(twiml.toString());
         }
       } else if (!hasAccount) {
-        if (Body.startsWith("USERNAME:") && Body.includes("PASSWORD:")) {
+        if (Body.includes("USERNAME:") && Body.includes("PASSWORD:")) {
           const response = await signUp(From, Body);
 
           // Test if user has been successfully added to the database
@@ -204,7 +204,7 @@ router.route("/").post(async (req, res) => {
           default: {
             // Parse the message more to find the users desired outcome
             //
-            if (Body.startsWith("CONTACT:")) {
+            if (Body.includes("CONTACT:")) {
               const message = await createContact(From, Body);
 
               const twiml = messageResponse(message);
